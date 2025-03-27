@@ -102,8 +102,8 @@
         
         // Card configuration with proper dimensions
         const CARD_CONFIG = {
-            width: 1024,  // Match Frame width
-            height: 768,  // Match Frame height
+            width: 768,   // Height of the card (portrait)
+            height: 1024, // Width of the card (portrait)
             fontSize: 100 // Larger font size
         }
 
@@ -116,10 +116,11 @@
 
         // Initialize the frame with proper dimensions
         new Frame(FIT, CARD_CONFIG.width, CARD_CONFIG.height, light, dark, ready, null, null, null, false, false, false, false, false, false, "cardCanvas");
-        
+
         function ready() {
             frame = F;
             stage = S;
+			console.log("frame height", frame.height, "frame width", frame.width, "stage height", stage.height, "stage width", stage.width)
             generateCards();
         }
 
