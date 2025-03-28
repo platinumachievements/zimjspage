@@ -4,7 +4,8 @@ import zim from "https://zimjs.org/cdn/017/zim";
 const CARD_CONFIG = {
     width: 768,   // Height of the card (portrait)
     height: 1024, // Width of the card (portrait)
-    fontSize: 100 // Larger font size
+    fontSize: 100, // Larger font size
+    imageSize: 400 // Size for the placeholder image
 }
 
 // Sample card data
@@ -13,6 +14,7 @@ const cardTexts = ["Warrior", "Mage", "Archer", "Dragon", "Knight", "Wizard", "R
 
 let frame;
 let stage;
+let cardImage; // Store the preloaded image
 
 // Initialize the frame with proper dimensions
 new Frame(FIT, CARD_CONFIG.width, CARD_CONFIG.height, light, dark, ready, null, null, null, false, false, false, false, false, false, "cardCanvas");
@@ -20,10 +22,24 @@ new Frame(FIT, CARD_CONFIG.width, CARD_CONFIG.height, light, dark, ready, null, 
 function ready() {
     frame = F;
     stage = S;
-    generateCards();
+    
+    // Use the specific static image URL
+    const imageUrl = "https://fastly.picsum.photos/id/39/400/400.jpg?hmac=ZYmwkba5ujMadu06Gah8gMOIgTDSlBgHE0bGEqMfJTQ";
+    const assets = {
+        id: "cardImage",
+        src: imageUrl,
+        noCORSonImage: true
+    };
+    
+    // Create a test Pic to ensure image is loaded
+    const testPic = new Pic(imageUrl);
+    testPic.on("complete", () => {
+        cardImage = imageUrl;
+        generateCards();
+    });
 }
 
-function generateCard(color, text) {
+async function generateCard(color, text) {
     // Clear the stage
     stage.removeAllChildren();
     
@@ -34,6 +50,25 @@ function generateCard(color, text) {
         color: color,
         corner: 20
     }).addTo(stage);
+    
+    // Create a placeholder for the image using Rectangle
+    const imageRect = new Rectangle({
+        width: CARD_CONFIG.imageSize,
+        height: CARD_CONFIG.imageSize,
+        color: "white",
+        corner: 10,
+        borderColor: "#000",
+        borderWidth: 2
+    });
+    imageRect.x = (CARD_CONFIG.width - CARD_CONFIG.imageSize) / 2;
+    imageRect.y = 100;
+    imageRect.addTo(stage);
+    
+    // Add the image using Pic container with URL directly
+    const pic = new Pic(cardImage, CARD_CONFIG.imageSize - 20, CARD_CONFIG.imageSize - 20);
+    pic.x = imageRect.x - 5; // Align with rectangle's border
+    pic.y = imageRect.y - 5; // Align with rectangle's border
+    pic.addTo(stage);
     
     // Add large label with DUO parameters
     const label = new Label({
@@ -49,7 +84,8 @@ function generateCard(color, text) {
         corner: 10,
         padding: 20
     });
-    label.center();
+    label.x = CARD_CONFIG.width / 2;
+    label.y = CARD_CONFIG.height - 150; // Position from bottom
     label.addTo(stage);
     
     // Update the stage
@@ -71,10 +107,10 @@ window.generateCards = function() {
     
     // Generate cards one at a time with delay
     let cardCount = 0;
-    const totalCards = 50;
+    const totalCards = 500;
     const delay = 50; // 50ms delay between cards
     
-    function addNextCard() {
+    async function addNextCard() {
         if (cardCount >= totalCards) {
             button.disabled = false;
             button.style.opacity = '1';
@@ -83,7 +119,7 @@ window.generateCards = function() {
         
         const color = cardColors[rand(cardColors.length - 1)];
         const text = cardTexts[rand(cardTexts.length - 1)];
-        const cardImage = generateCard(color, text);
+        const cardImage = await generateCard(color, text);
         
         const img = document.createElement("img");
         img.src = cardImage;
